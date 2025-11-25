@@ -1,61 +1,65 @@
 # Prototipo de Estandarizacion del Proceso de Egreso – HUN
 
-Prototipo digital para **simular y analizar el proceso de egreso hospitalario** del Hospital Universitario Nacional (HUN).  
-Permite evaluar tiempos, SLAs y cuellos de botella en **tres tipos de egreso**:
-
-- Egreso hospitalario (vivo)  
-- Egreso por remision  
-- Egreso voluntario  
+Este proyecto implementa un **prototipo digital** para simular y analizar el proceso de egreso hospitalario en el Hospital Universitario Nacional (HUN).  
+El sistema permite detectar cuellos de botella, medir tiempos, evaluar cumplimiento de SLAs y probar escenarios de mejora sin intervenir el proceso real.
 
 ---
 
 ## 🧩 Contexto del problema
 
-El HUN tiene una meta mensual de **880 egresos**, pero el desempeño reciente ronda los **722 egresos/mes**, es decir, cerca de un **20% por debajo de la meta**.
+El HUN tiene una meta mensual de **880 egresos**, pero el desempeño reciente ronda los **722 egresos/mes**, cerca de un **20% por debajo de la meta**.
 
-Durante las visitas y entrevistas al hospital se identifico que una de las causas criticas es la:
+La causa crítica identificada es:
 
-> Falta de estandarizacion y trazabilidad en la comunicacion entre las areas que intervienen en el egreso.
+> Falta de estandarizacion, comunicación fragmentada y baja trazabilidad entre áreas involucradas en el proceso.
 
-Esto genera:
-- Tiempos muertos
-- Retrasos administrativos
-- Cuellos de botella invisibles
-- Baja rotacion de cama
+Esto produce:
+- Tiempos muertos  
+- Retrasos administrativos  
+- Cuellos de botella invisibles  
+- Baja rotación de cama  
+- Ausencia de métricas claras  
 
 ---
 
 ## 🎯 Objetivo del prototipo
 
-Construir un **simulador digital del proceso de egreso**, alineado con la realidad del HUN, que permita:
+Desarrollar un simulador interactivo que permita:
 
-- Medir tiempos promedio y variabilidad por etapa  
-- Calcular cumplimiento de SLAs (tiempos objetivo)  
-- Identificar cuellos de botella por tipo de egreso  
-- Probar escenarios “que pasaria si” sin intervenir el proceso real  
+- Medir tiempos promedio del egreso  
+- Estimar variabilidad (desviación estándar)  
+- Evaluar cumplimiento de SLAs  
+- Identificar cuellos de botella  
+- Probar escenarios “qué pasaría si…”  
+- Construir evidencia para rediseñar el proceso de egreso  
 
-El prototipo funciona como una herramienta de **apoyo a la decision** para jefaturas, coordinaciones y equipos de mejora de procesos.
+El simulador está alineado al flujo real del HUN y considera **tres tipos de egreso**:
+
+1. Egreso hospitalario (vivo)  
+2. Egreso por remisión  
+3. Egreso voluntario  
 
 ---
 
 ## 🏗️ Arquitectura general
 
-**Backend**
-- Python 3.12
-- FastAPI (API REST)
-- NumPy (simulacion estadistica)
-- Pydantic (modelos de datos)
+### Backend
+- Python 3.12  
+- FastAPI  
+- NumPy (simulación estadística)  
+- Pydantic  
 
-**Frontend**
-- HTML + CSS sencillo (sin frameworks pesados)
-- JavaScript nativo
-- Tablas editables para tiempos y SLAs
-- Comunicacion con el backend via `fetch` (JSON)
+### Frontend
+- HTML + CSS sencillo  
+- JavaScript nativo  
+- Tablas editables  
+- Comunicación con el backend vía `fetch()` (JSON)  
 
 ---
 
 ## 📁 Estructura del proyecto
 
+```text
 egreso_prototipo/
 ├── app/
 │   ├── main.py          # Rutas, FastAPI, templates
@@ -68,128 +72,127 @@ egreso_prototipo/
 ├── requirements.txt     # Dependencias de Python
 ├── .gitignore
 └── README.md
+```
 
-⚙️ Requisitos
+---
+
+## ⚙️ Requisitos
 
 Debes tener instalado:
 
-Python 3.10+
+- **Python 3.10+**  
+- **Git**  
+- **Navegador moderno** (Edge, Chrome, Firefox)
 
-Git
+---
 
-Navegador moderno (Edge, Chrome, Firefox)
+## 🚀 Instalación y puesta en marcha
 
-🚀 Instalación y puesta en marcha
-1️⃣ Clonar el repositorio
+### 1️⃣ Clonar el repositorio
+
+```bash
 git clone https://github.com/TU-USUARIO/prototipo-egreso-hun.git
 cd prototipo-egreso-hun
+```
 
-2️⃣ Crear entorno virtual
+### 2️⃣ Crear entorno virtual
+
+```bash
 python -m venv .venv
+```
 
-3️⃣ Activarlo (Windows)
+### 3️⃣ Activarlo (Windows)
+
+```bash
 .venv\Scripts\activate
+```
 
-4️⃣ Instalar dependencias
+### 4️⃣ Instalar dependencias
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+```
 
-5️⃣ Ejecutar el servidor
+### 5️⃣ Ejecutar el servidor
+
+```bash
 python -m uvicorn app.main:app --reload
-
+```
 
 Deberías ver:
 
+```
 Uvicorn running on http://127.0.0.1:8000
 Application startup complete.
+```
 
-🌐 Uso del prototipo
+---
+
+## 🌐 Uso del prototipo
 
 Con el servidor corriendo, abrir:
 
+```
 http://127.0.0.1:8000/
-
+```
 
 La interfaz permite:
 
-✔️ Configuración general
+### ✔️ Configuración general
+- Número de pacientes  
+- Mezcla vivo/remisión/voluntario  
 
-Número de pacientes
-
-Mezcla vivo/remisión/voluntario
-
-✔️ Edición de etapas
-
+### ✔️ Edición de etapas
 Cada etapa permite editar:
+- Media (min)  
+- Desviación estándar  
+- SLA (tiempo máximo esperado)
 
-Media (min)
-
-Desviación estándar
-
-SLA (tiempo máximo esperado)
-
-✔️ Ejecutar simulación
-
+### ✔️ Ejecutar simulación
 El sistema calcula:
+- Tiempo total promedio  
+- P90  
+- Cumplimiento de SLAs  
+- Cuellos de botella  
+- KPIs por flujo  
 
-Tiempo total promedio
-
-P90
-
-Cumplimiento de SLAs
-
-Cuellos de botella
-
-KPIs por flujo
-
-✔️ Resultados
-
+### ✔️ Resultados
 El panel muestra:
+- Distribución efectiva de casos  
+- KPIs globales  
+- KPIs por tipo de egreso  
+- Rendimiento por etapa  
 
-Distribución efectiva de casos
+---
 
-KPIs globales
-
-KPIs por tipo de egreso
-
-Rendimiento por etapa
-
-🧮 Cómo funciona la simulación
+## 🧮 Cómo funciona la simulación
 
 Para cada paciente:
 
-Se asigna aleatoriamente a un flujo según la mezcla.
+1. Se asigna aleatoriamente a un flujo según la mezcla.  
+2. Para cada etapa:
+   - Se genera un tiempo aleatorio  
+     `t ~ N(media, desviacion)`  
+   - Se trunca a positivo  
+   - Se evalúa SLA  
+3. Se calcula tiempo total  
+4. Se generan KPIs:  
+   - Promedio  
+   - P90  
+   - Cumplimiento  
+   - Cuellos de botella  
 
-Para cada etapa:
+---
 
-Se genera un tiempo aleatorio
-t ~ N(media, desviacion)
+## 🔍 API del sistema
 
-Se trunca a positivo
-
-Se evalúa SLA
-
-Se calcula tiempo total
-
-Se generan KPIs:
-
-Promedio
-
-P90
-
-Cumplimiento
-
-Cuellos de botella
-
-🔍 API del sistema
-GET /
-
+### `GET /`
 Devuelve la interfaz del prototipo.
 
-POST /simulate
-
-Entrada:
-
+### `POST /simulate`
+**Entrada:**
+```json
 {
   "cases": 300,
   "mix": { "vivo": 0.6, "remision": 0.25, "voluntario": 0.15 },
@@ -199,51 +202,35 @@ Entrada:
     "voluntario": { "stages": [...] }
   }
 }
+```
 
-
-Salida:
-
-Casos por flujo
-
-Tiempo promedio
-
-P90
-
-Cumplimiento
-
-Cuellos de botella
-
-KPIs por etapa
-
-📈 Mejoras planificadas
-
-Cargar CSV con datos reales del HUN
-
-Gráficos con Chart.js
-
-Escenarios preconfigurados
-
-Rediseño visual (TailwindCSS)
-
-Diagrama interactivo con Mermaid
-
-👥 Autores
-
-Proyecto desarrollado para la asignatura TPI – HUN: Alertas Inteligentes
-Universidad Nacional de Colombia – 2025-I
-
-📄 Licencia
-
-Pendiente según directrices académicas y del HUN.
-
+**Salida:**
+- Casos por flujo  
+- Tiempo promedio  
+- P90  
+- Cumplimiento  
+- Cuellos de botella  
+- KPIs por etapa  
 
 ---
 
-# 🎯 **INSTRUCCIONES FINALES**
-✔️ **Copia TODO el bloque de arriba (completo).**  
-✔️ Pégalo en `README.md` EN VEZ del contenido actual.  
-✔️ Guarda → Commit → Push.
+## 📈 Mejoras planificadas
 
+- Cargar CSV con datos reales del HUN  
+- Gráficos con Chart.js  
+- Escenarios preconfigurados  
+- Rediseño visual (TailwindCSS)  
+- Diagrama interactivo con Mermaid  
 
+---
 
+## 👥 Autores
 
+Proyecto desarrollado para la asignatura **TPI – HUN: Alertas Inteligentes**  
+Universidad Nacional de Colombia – 2025-I  
+
+---
+
+## 📄 Licencia
+
+Pendiente según directrices académicas y del HUN.
