@@ -227,7 +227,7 @@ Devuelve la interfaz del prototipo.
 ## 👥 Autores
 
 Proyecto desarrollado para la asignatura **TPI – HUN: Alertas Inteligentes**  
-Universidad Nacional de Colombia – 2025-I  
+Universidad Nacional de Colombia – 2025-II  
 
 ---
 
