@@ -69,3 +69,182 @@ egreso_prototipo/
 ├── requirements.txt     # Dependencias de Python
 ├── .gitignore
 └── README.md
+
+⚙️ Requisitos
+
+Debes tener instalado:
+
+Python 3.10+
+
+Git
+
+Navegador moderno (Edge, Chrome, Firefox)
+
+🚀 Instalación y puesta en marcha
+1️⃣ Clonar el repositorio
+git clone https://github.com/TU-USUARIO/prototipo-egreso-hun.git
+cd prototipo-egreso-hun
+
+2️⃣ Crear entorno virtual
+python -m venv .venv
+
+3️⃣ Activarlo (Windows)
+.venv\Scripts\activate
+
+4️⃣ Instalar dependencias
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+5️⃣ Ejecutar el servidor
+python -m uvicorn app.main:app --reload
+
+
+Deberías ver:
+
+Uvicorn running on http://127.0.0.1:8000
+Application startup complete.
+
+🌐 Uso del prototipo
+
+Con el servidor corriendo, abrir:
+
+http://127.0.0.1:8000/
+
+
+La interfaz permite:
+
+✔️ Configuración general
+
+Número de pacientes
+
+Mezcla vivo/remisión/voluntario
+
+✔️ Edición de etapas
+
+Cada etapa permite editar:
+
+Media (min)
+
+Desviación estándar
+
+SLA (tiempo máximo esperado)
+
+✔️ Ejecutar simulación
+
+El sistema calcula:
+
+Tiempo total promedio
+
+P90
+
+Cumplimiento de SLAs
+
+Cuellos de botella
+
+KPIs por flujo
+
+✔️ Resultados
+
+El panel muestra:
+
+Distribución efectiva de casos
+
+KPIs globales
+
+KPIs por tipo de egreso
+
+Rendimiento por etapa
+
+🧮 Cómo funciona la simulación
+
+Para cada paciente:
+
+Se asigna aleatoriamente a un flujo según la mezcla.
+
+Para cada etapa:
+
+Se genera un tiempo aleatorio
+t ~ N(media, desviacion)
+
+Se trunca a positivo
+
+Se evalúa SLA
+
+Se calcula tiempo total
+
+Se generan KPIs:
+
+Promedio
+
+P90
+
+Cumplimiento
+
+Cuellos de botella
+
+🔍 API del sistema
+GET /
+
+Devuelve la interfaz del prototipo.
+
+POST /simulate
+
+Entrada:
+
+{
+  "cases": 300,
+  "mix": { "vivo": 0.6, "remision": 0.25, "voluntario": 0.15 },
+  "flows": {
+    "vivo": { "stages": [...] },
+    "remision": { "stages": [...] },
+    "voluntario": { "stages": [...] }
+  }
+}
+
+
+Salida:
+
+Casos por flujo
+
+Tiempo promedio
+
+P90
+
+Cumplimiento
+
+Cuellos de botella
+
+KPIs por etapa
+
+📈 Mejoras planificadas
+
+Cargar CSV con datos reales del HUN
+
+Gráficos con Chart.js
+
+Escenarios preconfigurados
+
+Rediseño visual (TailwindCSS)
+
+Diagrama interactivo con Mermaid
+
+👥 Autores
+
+Proyecto desarrollado para la asignatura TPI – HUN: Alertas Inteligentes
+Universidad Nacional de Colombia – 2025-I
+
+📄 Licencia
+
+Pendiente según directrices académicas y del HUN.
+
+
+---
+
+# 🎯 **INSTRUCCIONES FINALES**
+✔️ **Copia TODO el bloque de arriba (completo).**  
+✔️ Pégalo en `README.md` EN VEZ del contenido actual.  
+✔️ Guarda → Commit → Push.
+
+
+
+
