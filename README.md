@@ -56,7 +56,6 @@ El prototipo funciona como una herramienta de **apoyo a la decision** para jefat
 
 ## 📁 Estructura del proyecto
 
-```text
 egreso_prototipo/
 ├── app/
 │   ├── main.py          # Rutas, FastAPI, templates
