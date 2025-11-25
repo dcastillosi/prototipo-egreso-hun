@@ -1,4 +1,4 @@
-# Prototipo de Estandarizacion del Proceso de Egreso – HUN
+# HUN: Alertas inteligentes
 
 Este proyecto implementa un **prototipo digital** para simular y analizar el proceso de egreso hospitalario en el Hospital Universitario Nacional (HUN).  
 El sistema permite detectar cuellos de botella, medir tiempos, evaluar cumplimiento de SLAs y probar escenarios de mejora sin intervenir el proceso real.
