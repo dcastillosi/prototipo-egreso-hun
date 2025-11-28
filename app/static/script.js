@@ -1,90 +1,162 @@
-function readTable(id) {
-  const rows = Array.from(document.querySelectorAll(`#${id} tbody tr`));
-  return rows.map((tr) => {
-    const tds = tr.querySelectorAll("td");
-    return {
-      name: tds[0].innerText.trim(),
-      mean_minutes: parseFloat(tds[1].querySelector("input").value),
-      std_minutes: parseFloat(tds[2].querySelector("input").value),
-      sla_minutes: parseFloat(tds[3].querySelector("input").value),
-    };
-  });
+// script.js
+
+let chartVivoTimes = null;
+
+function getNumber(el) {
+  const v = parseFloat(el.value);
+  return isNaN(v) ? 0 : v;
 }
 
-function formatFlow(name, data, includeStages = true) {
-  const lines = [];
-  lines.push(`== ${name.toUpperCase()} ==`);
-  lines.push(`Casos: ${data.cases}`);
-  lines.push(`Tiempo total promedio: ${data.avg_total_minutes} min`);
-  lines.push(`P90 tiempo total: ${data.p90_total_minutes} min`);
-  lines.push(`Cumplimiento total (todas las etapas dentro de SLA): ${data.compliance_total_pct}%`);
-  lines.push(`Cuellos de botella: ${data.bottlenecks && data.bottlenecks.length ? data.bottlenecks.join(", ") : "-"}`);
+// Lee las tablas y construye el objeto de configuracion para la API
+function buildConfigFromDom() {
+  const cases = parseInt(document.getElementById("casesInput").value) || 0;
+  const mixVivo = parseFloat(document.getElementById("mixVivoInput").value) || 0;
+  const mixRem = parseFloat(document.getElementById("mixRemisionInput").value) || 0;
+  const mixVol = parseFloat(document.getElementById("mixVoluntarioInput").value) || 0;
 
-  if (includeStages && Array.isArray(data.stages)) {
-    lines.push(`Por etapa:`);
-    data.stages.forEach(s => {
-      lines.push(
-        `  - ${s.name}: avg ${s.avg.toFixed(1)} | P90 ${s.p90.toFixed(1)} | SLA ${s.sla} | Cumple ${s.compliance_pct}%`
-      );
+  const flows = {
+    vivo: { stages: [] },
+    remision: { stages: [] },
+    voluntario: { stages: [] },
+  };
+
+  // Recorre todas las tablas con data-flow
+  document.querySelectorAll("table.flow-table").forEach((table) => {
+    const flowKey = table.dataset.flow;
+    const stages = [];
+    table.querySelectorAll("tbody tr").forEach((row) => {
+      const cells = row.querySelectorAll("td");
+      if (cells.length < 4) return;
+
+      const name = cells[0].innerText.trim();
+      const mean = getNumber(cells[1].querySelector("input"));
+      const std = getNumber(cells[2].querySelector("input"));
+      const sla = getNumber(cells[3].querySelector("input"));
+
+      stages.push({ name, mean, std, sla });
     });
-  }
 
-  lines.push("");
-  return lines.join("\n");
+    if (flows[flowKey]) {
+      flows[flowKey].stages = stages;
+    }
+  });
+
+  return {
+    cases: cases,
+    mix: {
+      vivo: mixVivo,
+      remision: mixRem,
+      voluntario: mixVol,
+    },
+    flows: flows,
+  };
 }
 
+// Llama al backend para ejecutar la simulacion
 async function runSimulation() {
-  const resultEl = document.getElementById("result");
-  resultEl.textContent = "Ejecutando simulacion...";
+  const cfg = buildConfigFromDom();
 
   try {
-    const cases = parseInt(document.getElementById("cases").value || "300", 10);
-    const mix_vivo = parseFloat(document.getElementById("mix_vivo").value);
-    const mix_rem = parseFloat(document.getElementById("mix_remision").value);
-    const mix_vol = parseFloat(document.getElementById("mix_voluntario").value);
-
-    const payload = {
-      cases,
-      mix: { vivo: mix_vivo, remision: mix_rem, voluntario: mix_vol },
-      flows: {
-        vivo: { stages: readTable("tbl_vivo") },
-        remision: { stages: readTable("tbl_remision") },
-        voluntario: { stages: readTable("tbl_voluntario") },
-      }
-    };
-
     const resp = await fetch("/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(cfg),
     });
 
-    const text = await resp.text();
-
     if (!resp.ok) {
-      resultEl.textContent = `Error ${resp.status} al llamar /simulate:\n\n${text}`;
+      const txt = await resp.text();
+      document.getElementById("resultsBox").innerText =
+        "Error en la API de simulacion:\n" + txt;
       return;
     }
 
-    const data = JSON.parse(text);
-
-    const out = [];
-    out.push("MIX EFECTIVO (casos por flujo):");
-    Object.entries(data.counts).forEach(([k, v]) => out.push(`- ${k}: ${v}`));
-    out.push("");
-
-    // Global sin detalle por etapa
-    out.push(formatFlow("Global", data.overall, false));
-
-    // Flujos con detalle de etapas
-    out.push(formatFlow("Vivo", data.per_flow.vivo, true));
-    out.push(formatFlow("Remision", data.per_flow.remision, true));
-    out.push(formatFlow("Voluntario", data.per_flow.voluntario, true));
-
-    resultEl.textContent = out.join("\n");
-  } catch (e) {
-    resultEl.textContent = "Error en el JavaScript de la simulacion:\n" + e;
+    const data = await resp.json();
+    renderResults(data);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("resultsBox").innerText =
+      "Error en la llamada a la API:\n" + err;
   }
 }
 
-document.getElementById("runBtn").addEventListener("click", runSimulation);
+// Muestra los resultados en texto (por ahora generico)
+function renderResults(data) {
+  // Aqui puedes adaptar al formato real que retorna tu backend.
+  // Por ahora mostramos el JSON "bonito".
+  document.getElementById("resultsBox").innerText = JSON.stringify(
+    data,
+    null,
+    2
+  );
+}
+
+// Construye o actualiza la grafica de tiempos para el flujo vivo
+function updateVivoChart() {
+  const table = document.querySelector('table.flow-table[data-flow="vivo"]');
+  if (!table) return;
+
+  const labels = [];
+  const values = [];
+
+  table.querySelectorAll("tbody tr").forEach((row) => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length < 4) return;
+
+    const name = cells[0].innerText.trim();
+    const mean = getNumber(cells[1].querySelector("input"));
+
+    labels.push(name);
+    values.push(mean);
+  });
+
+  const ctx = document.getElementById("chartVivoTimes").getContext("2d");
+
+  if (chartVivoTimes) {
+    chartVivoTimes.destroy();
+  }
+
+  chartVivoTimes = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Media por etapa (minutos)",
+          data: values,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { ticks: { autoSkip: false, maxRotation: 60, minRotation: 45 } },
+        y: { beginAtZero: true },
+      },
+    },
+  });
+}
+
+// Eventos
+document.addEventListener("DOMContentLoaded", () => {
+  const btnRun = document.getElementById("runSimulationBtn");
+  const btnCharts = document.getElementById("updateChartsBtn");
+
+  if (btnRun) {
+    btnRun.addEventListener("click", (e) => {
+      e.preventDefault();
+      runSimulation();
+      updateVivoChart();
+    });
+  }
+
+  if (btnCharts) {
+    btnCharts.addEventListener("click", (e) => {
+      e.preventDefault();
+      updateVivoChart();
+    });
+  }
+
+  // Dibuja la grafica inicial con los valores por defecto
+  updateVivoChart();
+});

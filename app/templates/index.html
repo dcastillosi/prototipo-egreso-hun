@@ -1,116 +1,403 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>Prototipo Egreso HUN - Simulacion</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { margin-bottom: 0; }
-    h2 { margin-top: 1.5rem; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 4px 6px; font-size: 13px; }
-    th { background: #f0f0f0; }
-    input { width: 80px; }
-    .param-box { border: 1px solid #ccc; padding: 8px; margin-top: 10px; margin-bottom: 15px; }
-    .btn { padding: 6px 12px; background: #1976d2; border: none; color: #fff; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background: #0d47a1; }
-    pre { background: #f7f7f7; border: 1px solid #ccc; padding: 8px; font-size: 12px; }
-  </style>
-</head>
-<body>
-  <h1>Prototipo de Estandarizacion del Flujo de Egreso</h1>
-  <p>Tres tipos de egreso: vivo, remision y voluntario. Simulacion de tiempos y SLAs.</p>
+  <meta charset="UTF-8">
+  <title>Prototipo Egreso HUN</title>
 
-  <h2>Parametros generales</h2>
-  <div class="param-box">
-    <label># de pacientes:
-      <input id="cases" type="number" value="300" min="1" max="5000">
-    </label>
-    &nbsp;&nbsp;
-    <label>Mix vivo:
-      <input id="mix_vivo" type="number" step="0.01" value="0.6">
-    </label>
-    &nbsp;&nbsp;
-    <label>Mix remision:
-      <input id="mix_remision" type="number" step="0.01" value="0.25">
-    </label>
-    &nbsp;&nbsp;
-    <label>Mix voluntario:
-      <input id="mix_voluntario" type="number" step="0.01" value="0.15">
-    </label>
-    &nbsp;&nbsp;
-    <button id="runBtn" class="btn">Ejecutar simulacion</button>
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen">
+
+  <div class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Header -->
+    <header class="space-y-2">
+      <h1 class="text-3xl font-bold tracking-tight">
+        Prototipo de Estandarizacion del Flujo de Egreso
+      </h1>
+      <p class="text-sm text-slate-600">
+        Simulacion del proceso de egreso hospitalario del HUN: tiempos, SLA y cuellos de botella
+        para egreso vivo, por remision y voluntario.
+      </p>
+    </header>
+
+    <div class="grid gap-6 lg:grid-cols-[2fr,1.2fr]">
+
+      <!-- COLUMNA IZQUIERDA: parámetros + tablas -->
+      <main class="space-y-6">
+
+        <!-- Parámetros generales -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-4">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Parametros generales
+          </h2>
+
+          <div class="grid gap-4 md:grid-cols-4 text-sm items-center">
+            <label class="space-y-1">
+              <span class="block font-medium"># de pacientes</span>
+              <input id="casesInput" type="number" value="300"
+                     class="w-full border rounded-md px-2 py-1 text-sm">
+            </label>
+
+            <label class="space-y-1">
+              <span class="block font-medium">Mix vivo</span>
+              <input id="mixVivoInput" type="number" step="0.01" value="0.6"
+                     class="w-full border rounded-md px-2 py-1 text-sm">
+            </label>
+
+            <label class="space-y-1">
+              <span class="block font-medium">Mix remision</span>
+              <input id="mixRemisionInput" type="number" step="0.01" value="0.25"
+                     class="w-full border rounded-md px-2 py-1 text-sm">
+            </label>
+
+            <label class="space-y-1">
+              <span class="block font-medium">Mix voluntario</span>
+              <input id="mixVoluntarioInput" type="number" step="0.01" value="0.15"
+                     class="w-full border rounded-md px-2 py-1 text-sm">
+            </label>
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <button id="runSimulationBtn"
+                    class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+              Ejecutar simulacion
+            </button>
+
+            <button id="updateChartsBtn"
+                    class="px-4 py-2 rounded-md bg-slate-800 text-white text-sm font-medium hover:bg-slate-900">
+              Actualizar graficas
+            </button>
+          </div>
+        </section>
+
+        <!-- TABLA: Egreso hospitalario (vivo) -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-3">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Egreso hospitalario (vivo)
+          </h2>
+
+          <div class="overflow-x-auto text-sm">
+            <table class="min-w-full text-left border flow-table" data-flow="vivo">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-2 py-1 border">Etapa</th>
+                  <th class="px-2 py-1 border text-center">Media</th>
+                  <th class="px-2 py-1 border text-center">Desv</th>
+                  <th class="px-2 py-1 border text-center">SLA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="px-2 py-1 border">Orden de egreso + resumen clinico</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="90" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">Epicrisis + inventario habitacion</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">Devolucion medicamentos</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="5" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">Alta temprana (pendientes admin)</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="40" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">Facturacion / copagos</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="50" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="90" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">TICs: depuracion pendientes HC</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">TICs: cierre facturacion</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">TICs: cierre historia clinica</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+                <tr>
+                  <td class="px-2 py-1 border">Limpieza y alistamiento de cama</td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="40" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                  <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TABLA: Egreso por remisión -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-3">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Egreso por remision
+          </h2>
+
+          <div class="overflow-x-auto text-sm">
+            <table class="min-w-full text-left border flow-table" data-flow="remision">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-2 py-1 border">Etapa</th>
+                  <th class="px-2 py-1 border text-center">Media</th>
+                  <th class="px-2 py-1 border text-center">Desv</th>
+                  <th class="px-2 py-1 border text-center">SLA</th>
+                </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td class="px-2 py-1 border">Diligenciar formatos de remision</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="40" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Generar remision en sistema</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Referencia valida y abre tramite</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="120" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Coordina movil y comunica llegada</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="120" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Devolucion medicamentos</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="5" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Facturacion / copagos</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="50" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="90" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: depuracion pendientes HC</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: cierre facturacion</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: cierre historia clinica</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Limpieza y alistamiento de cama</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="40" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- TABLA: Egreso voluntario -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-3">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Egreso voluntario
+          </h2>
+
+          <div class="overflow-x-auto text-sm">
+            <table class="min-w-full text-left border flow-table" data-flow="voluntario">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="px-2 py-1 border">Etapa</th>
+                  <th class="px-2 py-1 border text-center">Media</th>
+                  <th class="px-2 py-1 border text-center">Desv</th>
+                  <th class="px-2 py-1 border text-center">SLA</th>
+                </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td class="px-2 py-1 border">Explicacion condicion y consecuencias</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Registro en HC + firma voluntaria</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="35" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Devolucion medicamentos</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="5" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Facturacion / copagos</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="50" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="90" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: depuracion pendientes HC</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="30" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: cierre facturacion</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">TICs: cierre historia clinica</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="20" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="10" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="45" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+              <tr>
+                <td class="px-2 py-1 border">Limpieza y alistamiento de cama</td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="40" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="15" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+                <td class="px-2 py-1 border text-center"><input type="number" value="60" class="w-20 border rounded px-1 py-0.5 text-sm"></td>
+              </tr>
+            </tbody>
+
+            </table>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- COLUMNA DERECHA: proceso + gráficas + resultados -->
+      <aside class="space-y-6">
+
+        <!-- Proceso general -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-3">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Proceso de ingreso a egreso (vista general)
+          </h2>
+
+          <ol class="flex flex-col gap-3 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">1</span>
+              <div>
+                <p class="font-medium">Ingreso del paciente</p>
+                <p class="text-slate-600">Admisiones, clasificacion y asignacion de cama.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">2</span>
+              <div>
+                <p class="font-medium">Hospitalizacion y atencion clinica</p>
+                <p class="text-slate-600">Proceso asistencial hasta que se define que el paciente puede egresar.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">3</span>
+              <div>
+                <p class="font-medium">Orden de egreso y resumen clinico</p>
+                <p class="text-slate-600">Medico tratante genera orden, epicrisis y prescripciones al hogar.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">4</span>
+              <div>
+                <p class="font-medium">Facturacion y autorizaciones</p>
+                <p class="text-slate-600">Validacion de derechos, prefactura, copagos y autorizaciones pendientes.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">5</span>
+              <div>
+                <p class="font-medium">Cierre de historia y sistemas</p>
+                <p class="text-slate-600">Actualizacion en HC, sistemas TIC y cierre administrativo.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="mt-1 h-5 w-5 rounded-full border flex items-center justify-center text-xs">6</span>
+              <div>
+                <p class="font-medium">Salida del paciente y giro cama</p>
+                <p class="text-slate-600">Entrega de indicaciones al hogar, salida fisica y alistamiento de cama.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <!-- Gráficas -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-4">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Graficas del flujo (vivo)
+          </h2>
+
+          <p class="text-xs text-slate-600">
+            Estas graficas usan las medias definidas en la tabla de egreso vivo. Despues podemos
+            conectarlas directamente con los resultados de la simulacion.
+          </p>
+
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-sm font-medium mb-1">Tiempo promedio por etapa (minutos)</h3>
+              <!-- Caja fija para la grafica -->
+              <div class="h-64">
+                <canvas id="chartVivoTimes" class="w-full h-full"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Resultados -->
+        <section class="bg-white rounded-xl shadow p-4 space-y-2">
+          <h2 class="text-lg font-semibold border-b pb-2">
+            Resultados de la simulacion
+          </h2>
+          <pre id="resultsBox" class="text-xs whitespace-pre-wrap font-mono text-slate-800"></pre>
+        </section>
+
+      </aside>
+    </div>
   </div>
 
-  <h2>Egreso hospitalario (vivo)</h2>
-  <table id="tbl_vivo">
-    <thead>
-      <tr>
-        <th>Etapa</th>
-        <th>Media</th>
-        <th>Desv</th>
-        <th>SLA</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in defaults.vivo %}
-      <tr>
-        <td>{{ s.name }}</td>
-        <td><input value="{{ s.mean_minutes }}"></td>
-        <td><input value="{{ s.std_minutes }}"></td>
-        <td><input value="{{ s.sla_minutes }}"></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>Egreso por remision</h2>
-  <table id="tbl_remision">
-    <thead>
-      <tr>
-        <th>Etapa</th>
-        <th>Media</th>
-        <th>Desv</th>
-        <th>SLA</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in defaults.remision %}
-      <tr>
-        <td>{{ s.name }}</td>
-        <td><input value="{{ s.mean_minutes }}"></td>
-        <td><input value="{{ s.std_minutes }}"></td>
-        <td><input value="{{ s.sla_minutes }}"></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>Egreso voluntario</h2>
-  <table id="tbl_voluntario">
-    <thead>
-      <tr>
-        <th>Etapa</th>
-        <th>Media</th>
-        <th>Desv</th>
-        <th>SLA</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in defaults.voluntario %}
-      <tr>
-        <td>{{ s.name }}</td>
-        <td><input value="{{ s.mean_minutes }}"></td>
-        <td><input value="{{ s.std_minutes }}"></td>
-        <td><input value="{{ s.sla_minutes }}"></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>Resultados</h2>
-  <pre id="result"></pre>
-
+  <!-- JS de la app -->
   <script src="/static/script.js"></script>
 </body>
 </html>
